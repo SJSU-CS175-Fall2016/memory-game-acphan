@@ -27,7 +27,6 @@
         android:layout_marginTop="49dp"
         android:weightSum="1"
         android:orientation="vertical">
-
         //the Play Button to go to game screen
         <Button
             android:layout_width="111dp"
@@ -49,4 +48,5 @@
             android:layout_weight="0.07"
             android:onClick="readRules"/>
     </LinearLayout>
+
 </RelativeLayout>

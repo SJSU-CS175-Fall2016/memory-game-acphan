@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -25,6 +26,12 @@ import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
+
+import com.daimajia.androidanimations.library.Techniques;
+import com.daimajia.androidanimations.library.YoYo;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class DisplayGameActivity extends Activity{
         private static int ROW_COUNT = 4;   //# of rows
@@ -41,18 +48,24 @@ public class DisplayGameActivity extends Activity{
         private UpdateTilesHandler handler; //handle the comparison of tiles
         private ArrayList<Integer> list;    //used to randomize the tile images
 
+        @BindView(R.id.TableLayout03) TableLayout mTable;
+        @BindView(R.id.mainTable) TableRow gTable;
+        @BindView(R.id.pointDisp) TextView points;
+        @BindView(R.id.Spinner01) Spinner spinner1;
+
         //Creation of activity including the main table, points, spinner, tile picture, etc.
         @Override
         public void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
+            ButterKnife.bind(this);
             handler = new UpdateTilesHandler();
             loadImages();   //get images
             setContentView(R.layout.activity_display_game);
             tileCover = getResources().getDrawable(R.drawable.mystery); //draw tile cover picture
             buttonListener = new ButtonListener();
-            mainTable = (TableLayout) findViewById(R.id.TableLayout03);
+            mainTable = mTable;
             context = mainTable.getContext();
-            Spinner spin = (Spinner) findViewById(R.id.Spinner01);  //spinner to choose pattern
+            Spinner spin = spinner1;  //spinner to choose pattern
             ArrayAdapter adapter = ArrayAdapter.createFromResource(
                     this, R.array.type, android.R.layout.simple_spinner_item);
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -62,7 +75,7 @@ public class DisplayGameActivity extends Activity{
                 public void onItemSelected(
                         android.widget.AdapterView<?> arg0,
                         View arg1, int pos, long arg3){
-                    ((Spinner) findViewById(R.id.Spinner01)).setSelection(0);
+                    spinner1.setSelection(0);
                     int col,row;    //possible patterns for 20 tiles
                     switch (pos) {
                         case 1:
@@ -74,7 +87,8 @@ public class DisplayGameActivity extends Activity{
                         default:
                             return;
                     }
-                    newGame(col,row);
+                        newGame(col, row);
+
                 }
                 @Override
                 public void onNothingSelected(AdapterView<?> arg0) {
@@ -82,24 +96,20 @@ public class DisplayGameActivity extends Activity{
                 }
             });
             //Load saved state
-            SharedPreferences prefs = getPreferences((MODE_PRIVATE));
+
         }
 
-        //Save game progress, save state
-        public void onPause(){
-            super.onPause();
-            SharedPreferences prefs = getPreferences(MODE_PRIVATE);
-            SharedPreferences.Editor prefsEditor = prefs.edit();
-            prefsEditor.commit();
-        }
 
         //Create new pattern of tiles, all covered
         public void newGame(int col, int row) {
             ROW_COUNT = row;
             COL_COUNT = col;
-
+            ButterKnife.bind(this);
             tiles = new int [COL_COUNT] [ROW_COUNT];
-            TableRow tr = ((TableRow)findViewById(R.id.mainTable));
+
+
+            TableRow tr = gTable;
+            tr.removeAllViews();
             mainTable = new TableLayout(context);
             tr.addView(mainTable);
             for (int y = 0; y < ROW_COUNT; y++) {
@@ -107,9 +117,10 @@ public class DisplayGameActivity extends Activity{
             }
             tileOne=null;
             loadTiles();
-            TextView score = (TextView) findViewById(R.id.pointDisp);
+            TextView score = points;
             score.setText("Points: 0");
         }
+
 
         //Load the images from Resources
         public void loadImages() {
@@ -196,6 +207,9 @@ public class DisplayGameActivity extends Activity{
                 //If no previously selected tile, it is the first
                 if(tileOne==null){
                     tileOne = new Tile(button,x,y);
+                    YoYo.with(Techniques.Wave)
+                            .duration(2000)
+                            .playOn(tileOne.button);
                 }
                 else{
                     if(tileOne.x == x && tileOne.y == y){
@@ -204,6 +218,9 @@ public class DisplayGameActivity extends Activity{
 
                     //Select second tile
                     tileTwo = new Tile(button,x,y);
+                    YoYo.with(Techniques.Wave)
+                            .duration(2000)
+                            .playOn(tileTwo.button);
 
                     //Timer to prevent infinite wait,stuck on the two selected tiles
                     TimerTask tt = new TimerTask() {
